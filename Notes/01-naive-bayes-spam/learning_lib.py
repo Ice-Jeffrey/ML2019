@@ -10,6 +10,7 @@ def train_test_split(data, test_size=0.25):
             train_indexes.append(i)
         else:
             test_indexes.append(i)
+    #rearrange the data according to the newly-generated indexes
     train_data = data.reindex(train_indexes).reset_index()
     test_data = data.reindex(test_indexes).reset_index()
     return train_data, test_data

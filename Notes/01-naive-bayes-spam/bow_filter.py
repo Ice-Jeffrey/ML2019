@@ -6,7 +6,7 @@ from bow_classifier import BagOfWordsClassifier
 
 
 def load_data():
-    data = pd.read_csv("spam.csv", encoding="latin-1")
+    data = pd.read_csv("Notes/01-naive-bayes-spam/spam.csv", encoding="latin-1")
     data.drop(columns=data.columns[2:], inplace=True)
     data.columns = ["label", "message"]
     return data

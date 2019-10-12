@@ -11,4 +11,3 @@ class AbstractSPAMClassifier(ABC):
     @abstractmethod
     def predict(self, message):
         pass
-
