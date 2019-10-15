@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class AbstractSPAMClassifier(ABC):
+class AbstractIrisClassifier(ABC):
     def __init__(self):
         super().__init__()
 

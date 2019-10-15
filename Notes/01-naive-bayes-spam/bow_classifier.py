@@ -17,15 +17,15 @@ class BagOfWordsClassifier(AbstractSPAMClassifier):
 
         # Split words (bigrams) into ham and spam classes for all messages
         #计算垃圾邮件和非垃圾邮件的条数以及集合
-        ham_total, spam_total = 0, 0
+        self.ham_total, self.spam_total = 0, 0
         ham_words, spam_words = [], []
         for i in range(message_count):
             if labels[i] == 0:
                 ham_words += messages[i]
-                ham_total += 1
+                self.ham_total += 1
             else:
                 spam_words += messages[i]
-                spam_total += 1
+                self.spam_total += 1
 
         # Record word frequencies within each class
         #计算每个单词在垃圾邮件中和非垃圾邮件中出现的频数
@@ -40,10 +40,10 @@ class BagOfWordsClassifier(AbstractSPAMClassifier):
         self.log_ham_prob, self.log_spam_prob = {}, {}
         for word, count in ham_freqs.items():
             self.log_ham_prob[word] = math.log(
-                (count + 1) / (ham_total + 1))
+                (count + 1) / (self.ham_total + 1))
         for word, count in spam_freqs.items():
             self.log_spam_prob[word] = math.log(
-                (count + 1) / (spam_total + 1))
+                (count + 1) / (self.spam_total + 1))
 
     def predict(self, message):
         prob_ham = self.log_prior_prob_ham
@@ -53,4 +53,6 @@ class BagOfWordsClassifier(AbstractSPAMClassifier):
                 prob_ham += self.log_ham_prob[word]
             if word in self.log_spam_prob:
                 prob_spam += self.log_spam_prob[word]
+            if word not in self.log_ham_prob and word not in self.log_spam_prob:
+                prob_ham += math.log(1 / self.ham_total )
         return int(prob_spam < prob_ham)

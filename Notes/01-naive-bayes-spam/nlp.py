@@ -4,7 +4,7 @@ from nltk.stem import PorterStemmer
 from numpy import zeros
 
 
-def transform(sentence, lower_case=True, stem=True, stop_words=True, gram=1):
+def transform(sentence, lower_case=True, stem=True, stop_words=True, gram=2):
     #transform the sentence to lowercase
     if lower_case:
         sentence = sentence.lower()
