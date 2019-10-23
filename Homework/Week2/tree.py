@@ -130,6 +130,7 @@ def main():
     myTree = createDecisionTree(data, data.columns[:-1])
     print(myTree)
     
+    # 6. make the prediction based on the decision tree we have built
     
 
 if __name__ == '__main__':
