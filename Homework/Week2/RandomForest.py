@@ -5,6 +5,7 @@ import operator
 from sklearn.metrics import accuracy_score
 from learning_lib import train_test_split
 
+
 def entropy(data):
     #compute total entropy of the dataset
     counts = data["target"].value_counts()
@@ -21,6 +22,7 @@ def entropy(data):
         sum -= p * math.log(p)
     return sum
 
+
 def create_thresholds(data, names, nstds = 2):
     thresholds = {}
     for feature in names:
@@ -36,6 +38,7 @@ def create_thresholds(data, names, nstds = 2):
         thresholds[feature] = ts
     return thresholds
 
+
 def changeData(data, features, thresholds):    
     for feature in features:
         if feature in thresholds:
@@ -45,6 +48,7 @@ def changeData(data, features, thresholds):
                     if val >= thresholds[feature][i] and val <= thresholds[feature][i+1]:
                         data[feature][j] = i
     return data
+
 
 def gain(data, feature):
     H = entropy(data)
@@ -64,6 +68,7 @@ def gain(data, feature):
     #print(H - sum)
     return H - sum
 
+
 def findBestFeature(features, IG):
     bestLoc = 0
     bestFeature = features[0]
@@ -75,6 +80,7 @@ def findBestFeature(features, IG):
             gain = IG[i]
     return bestLoc, bestFeature
 
+
 def majorityCnt(classList):
     classCount = {}
     for vote in classList:
@@ -82,6 +88,7 @@ def majorityCnt(classList):
     #print(classCount.items)
     sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
     return sortedClassCount[0][0]
+
 
 def createDecisionTree(data, features):
     #the ending conditions of the recursion    
@@ -114,6 +121,7 @@ def createDecisionTree(data, features):
         myTree[bestfeat][value] = createDecisionTree(subData, subFeatures)
     return myTree
 
+
 def classify(inputTree,featLabels,testVec):
     firstStr = list(inputTree.keys())[0]
     secondDict = inputTree[firstStr]
@@ -130,11 +138,30 @@ def classify(inputTree,featLabels,testVec):
     return classLabel
 
 
+def CreateRandomForest(data, features, classifiers = 10):
+    trees = []
+    for i in range(classifiers):
+        subdata = data.iloc[:,:]
+        #bootstraping
+        cols = np.random.randint(0, 2, size = (len(features)))
+        subfeatures = []
+        for j in range(len(cols)):
+            if cols[j] == 0:
+                subdata = subdata.drop(features[j], axis = 1)
+            if cols[j] == 1:
+                subfeatures.append(features[j])
+        
+        #subspace sampling
+        subdata = subdata.sample(frac = 0.7)
+        myTree = createDecisionTree(subdata, features=subdata.columns[:-1])
+        trees.append(myTree)
+    return trees
+
+
 def main():
     # 1. load data
-    data = pd.read_csv("Notes\\02-decision-trees-code\\heart.csv")
-    for i in range(data.shape[0]):
-        data['oldpeak'].iloc[i] = int(math.floor(data['oldpeak'].iloc[i]))
+    data = pd.read_csv("Notes\\02-decision-trees-code\\heart.csv", usecols=[
+                        "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "target"])
 
     # 2. create thresholds
     thresholds = create_thresholds(
@@ -146,16 +173,23 @@ def main():
     train_data, test_data = train_test_split(data, test_size=0.25)
     
     # 5. create the decision tree
-    myTree = createDecisionTree(train_data.drop('index', axis = 1), data.columns[:-1])
-    #print(myTree)
-
+    myForest = CreateRandomForest(train_data.drop('index', axis = 1), data.columns[:-1])
+    
     # 6. make the prediction based on the decision tree we have built
     predictions = []
     for i in range(test_data.shape[0]):
-        row = list(test_data.iloc[i, 1:])
-        result = classify(myTree, data.columns[:-1], row)
-        predictions.append(result)
+        results = {}
+        for myTree in myForest:
+            row = list(test_data.iloc[i, 1:])
+            result = classify(myTree, data.columns[:-1], row)
+            results[result] = results.get(result, 0) + 1
+        max_key = None
+        for key, value in results.items():
+            if value == max(results.values()):
+                max_key = key
+        predictions.append(max_key)
 
+    # 7. compute the accuracy_score of the decision tree
     print(accuracy_score(test_data.iloc[:, -1], predictions))
     
 

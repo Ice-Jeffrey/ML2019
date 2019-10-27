@@ -6,7 +6,7 @@ from learning_lib import train_test_split
 
 # Need to update path to graphviz
 import os
-os.environ["PATH"] += os.pathsep + u"C:\\Users\\brian\\Anaconda3\\envs\\intro-ml\\Library\\bin\\graphviz"
+os.environ["PATH"] += os.pathsep + u"D:\\DevelopmentTools\\Anaconda3\\envs\\intro_ml2019\\Library\\bin\\graphviz"
 
 
 data = pd.read_csv("Notes\\02-decision-trees-code\heart.csv", usecols=[

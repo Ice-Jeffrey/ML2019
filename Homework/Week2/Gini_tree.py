@@ -5,7 +5,7 @@ import operator
 from sklearn.metrics import accuracy_score
 from learning_lib import train_test_split
 
-def entropy(data):
+def Gini(data):
     #compute total entropy of the dataset
     counts = data["target"].value_counts()
     """
@@ -18,8 +18,8 @@ def entropy(data):
     sum = 0.
     for count in counts:
         p = count / total
-        sum -= p * math.log(p)
-    return sum
+        sum -= p ** 2
+    return 1 - sum
 
 def create_thresholds(data, names, nstds = 2):
     thresholds = {}
@@ -47,7 +47,7 @@ def changeData(data, features, thresholds):
     return data
 
 def gain(data, feature):
-    H = entropy(data)
+    H = Gini(data)
     total = data.shape[0]
     vals = {}
     for val in data[feature]:
@@ -58,7 +58,7 @@ def gain(data, feature):
     sum = 0.
     for val in vals:
         p = vals[val] / total
-        temp = entropy(data[data[feature] == val])
+        temp = Gini(data[data[feature] == val])
         sum += p * temp
     #print(H, sum)
     #print(H - sum)
@@ -92,7 +92,6 @@ def createDecisionTree(data, features):
         return majorityCnt(classList)
 
     #compute the information gain
-    H = entropy(data)
     IG = []
     for feature in features:
         temp = gain(data, feature)
@@ -147,8 +146,7 @@ def main():
     
     # 5. create the decision tree
     myTree = createDecisionTree(train_data.drop('index', axis = 1), data.columns[:-1])
-    #print(myTree)
-
+    
     # 6. make the prediction based on the decision tree we have built
     predictions = []
     for i in range(test_data.shape[0]):
