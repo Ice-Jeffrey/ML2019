@@ -3,25 +3,30 @@ import pandas as pd
 import math
 import operator
 from sklearn.metrics import accuracy_score
+from pandas.plotting import scatter_matrix
+import matplotlib.pyplot as plt
 from learning_lib import train_test_split
 
+def loadData():
+    names = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DPF', 'Age', 'Class']
+    data = pd.read_csv('Homework\Week3\pima-indians-diabetes.data.csv', names=names)
+    return data
 
 def entropy(data):
     #compute total entropy of the dataset
-    counts = data["target"].value_counts()
+    counts = data["Class"].value_counts()
     """
         Similar to doing the following manually:
             counts = {}
-            for val in data["target"]:
+            for val in data["Class"]:
                 counts[val] = counts.get(val, 0) + 1
     """
-    total = data["target"].shape[0]
+    total = data["Class"].shape[0]
     sum = 0.
     for count in counts:
         p = count / total
         sum -= p * math.log(p)
     return sum
-
 
 def create_thresholds(data, names, nstds = 2):
     thresholds = {}
@@ -38,7 +43,6 @@ def create_thresholds(data, names, nstds = 2):
         thresholds[feature] = ts
     return thresholds
 
-
 def changeData(data, features, thresholds):    
     for feature in features:
         if feature in thresholds:
@@ -48,7 +52,6 @@ def changeData(data, features, thresholds):
                     if val >= thresholds[feature][i] and val <= thresholds[feature][i+1]:
                         data[feature][j] = i
     return data
-
 
 def gain(data, feature):
     H = entropy(data)
@@ -68,7 +71,6 @@ def gain(data, feature):
     #print(H - sum)
     return H - sum
 
-
 def findBestFeature(features, IG):
     bestLoc = 0
     bestFeature = features[0]
@@ -80,7 +82,6 @@ def findBestFeature(features, IG):
             gain = IG[i]
     return bestLoc, bestFeature
 
-
 def majorityCnt(classList):
     classCount = {}
     for vote in classList:
@@ -88,7 +89,6 @@ def majorityCnt(classList):
     #print(classCount.items)
     sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
     return sortedClassCount[0][0]
-
 
 def createDecisionTree(data, features):
     #the ending conditions of the recursion    
@@ -121,7 +121,6 @@ def createDecisionTree(data, features):
         myTree[bestfeat][value] = createDecisionTree(subData, subFeatures)
     return myTree
 
-
 def classify(inputTree,featLabels,testVec):
     firstStr = list(inputTree.keys())[0]
     secondDict = inputTree[firstStr]
@@ -137,7 +136,6 @@ def classify(inputTree,featLabels,testVec):
     elif valueOfFeat == None:   classLabel = 0
     else: classLabel = valueOfFeat
     return classLabel
-
 
 def CreateRandomForest(data, features, classifiers = 10):
     trees = []
@@ -158,26 +156,57 @@ def CreateRandomForest(data, features, classifiers = 10):
         trees.append(myTree)
     return trees
 
-
 def main():
-    # 1. load data
-    data = pd.read_csv("Notes\\02-decision-trees-code\\heart.csv", usecols=[
-                        "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "target"])
+    # 1. load the data and initial the summary
+    data = loadData()    
+    
+    # 2. data cleaning
+    for i in range(data.shape[0]):
+        subdata = data.iloc[i]
+        if(subdata['Glucose'] == 0):
+            subdata['Glucose'] = data[data['Glucose'] != 0]['Glucose'].mean()
+            data.iloc[i] = subdata
+        if(subdata['BloodPressure'] == 0):
+            subdata['BloodPressure'] = data[data['BloodPressure'] != 0]['BloodPressure'].mean()
+            data.iloc[i] = subdata
+        if(subdata['SkinThickness'] == 0):
+            subdata['SkinThickness'] = data[data['SkinThickness'] != 0]['SkinThickness'].mean()
+            data.iloc[i] = subdata
+        if(subdata['BMI'] == 0):
+            subdata['BMI'] = data[data['BMI'] != 0]['BMI'].mean()
+            data.iloc[i] = subdata
 
-    # 2. create thresholds
+    # 3. show the correlation and drop the correlated features
+    print(data.drop('Class', axis=1).corr())
+    data.drop('SkinThickness', axis=1)
+    data.drop('Pregnancies', axis=1)
+
+    # 4. create thresholds
     thresholds = create_thresholds(
-        data, ["age", "chol", "trestbps", "thalach"], nstds=2)
-    # 3. modify the data and transform it into nominal values
-    data = changeData(data, features=["age", "chol", "trestbps", "thalach"], thresholds=thresholds)
+        data, ['Glucose', 'BloodPressure', 'Insulin', 'BMI', 'DPF', 'Age'], nstds=2)
 
-    # 4. split the dataset to be training data and testing data
+    # 5. modify the data and transform it into nominal values
+    data = changeData(data, features=['Age', 'Glucose', 'BloodPressure', 'Insulin', 'BMI', 'DPF'], thresholds=thresholds)
+
+    # 6. split the dataset to be training data and testing data
     train_data, test_data = train_test_split(data, test_size=0.25)
     
-    # 5. create the decision tree
+    # 7. create the decision tree
+    myTree = createDecisionTree(train_data.drop('index', axis = 1), data.columns[:-1])
+    #print(myTree)
+
+    # 8. make the prediction based on the decision tree we have built
+    decision_tree_predictions = []
+    for i in range(test_data.shape[0]):
+        row = list(test_data.iloc[i, 1:])
+        result = classify(myTree, data.columns[:-1], row)
+        decision_tree_predictions.append(result)
+    # print the accuracy
+    print('The accuracy using decision tree is: ', accuracy_score(test_data.iloc[:, -1], decision_tree_predictions))
+
+    # 9. make the prediction based on the random forest we have built
     myForest = CreateRandomForest(train_data.drop('index', axis = 1), data.columns[:-1])
-    
-    # 6. make the prediction based on the decision tree we have built
-    predictions = []
+    random_forest_predictions = []
     for i in range(test_data.shape[0]):
         results = {}
         for myTree in myForest:
@@ -188,11 +217,9 @@ def main():
         for key, value in results.items():
             if value == max(results.values()):
                 max_key = key
-        predictions.append(max_key)
+        random_forest_predictions.append(max_key)
+    # compute the accuracy_score of the decision tree
+    print('The accuracy using random forest is: ', accuracy_score(test_data.iloc[:, -1], random_forest_predictions))
 
-    # 7. compute the accuracy_score of the decision tree
-    print(accuracy_score(test_data.iloc[:, -1], predictions))
-    
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

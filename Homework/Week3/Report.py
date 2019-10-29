@@ -4,24 +4,43 @@ from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 
 def loadData():
-    names = ['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class']
+    names = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DPF', 'Age', 'Class']
     data = pd.read_csv('Homework\Week3\pima-indians-diabetes.data.csv', names=names)
     return data
 
 def main():
     # 1. load the data and initial the summary
     data = loadData()    
-    
-    # 2. for continuous values, compute min, max, mean, standard deviation, first quartile value, second 
+
+    # 2. show probability distributions
+    data.hist(figsize=(10,10))
+    plt.show()    
+
+    # 3. plot the density curves
+    data.plot(kind='density', subplots=True, layout=(3,3), sharex=False, figsize=(10,10))
+    plt.show()
+
+    # 4. plot bar plots
+    data.plot(kind='box', subplots=True, layout=(3,3), sharex=False, sharey=False, figsize=(10, 10))
+    plt.show()
+
+    # 5. show the scatter matrix
+    scatter_matrix(data, figsize=(15,15))
+    plt.show()
+
+    # 6. for continuous values, compute min, max, mean, standard deviation, first quartile value, second 
     continuous_information = []
-    continuous_features = ['plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age']
+    continuous_features = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DPF', 'Age']
     for feature in continuous_features:
         #initial the subdata
         subdata = data[feature]
         #use the built-in describe method of pandas
         description = subdata.describe()
         #compute missing_values and cardinality of the data
-        missing_values = subdata.isnull().sum().sum()
+        if feature not in ['Glucose', 'BloodPressure', 'SkinThickness', 'BMI']:
+            missing_values = subdata.isnull().sum().sum()
+        else:
+            missing_values = subdata.value_counts()[0]
         s = set(subdata)
         cardinality = len(s)
         #store the missing_values and cardinality in a series
@@ -34,9 +53,9 @@ def main():
     print('The summary of continuous features: ')
     print(continuous_information, '\n')
 
-    # 3. for categorical values, compute mode, mode frequency, mode percentage, second mode, second mode frequency, second mode percentage
+    # 7. for categorical values, compute mode, mode frequency, mode percentage, second mode, second mode frequency, second mode percentage
     categorical_information = []
-    categorical_features = ['preg', 'class']
+    categorical_features = ['Pregnancies', 'Class']
     for feature in categorical_features:
         #initial the subdict and subdata
         subdata = data[feature]
@@ -69,21 +88,6 @@ def main():
     print('The summary of categorical features: ')
     print(categorical_information, '\n')
 
-    # 4. show probability distributions
-    data.hist(figsize=(10,10))
-    plt.show()    
-
-    # 5. plot the density curves
-    data.plot(kind='density', subplots=True, layout=(3,3), sharex=False, figsize=(10,10))
-    plt.show()
-
-    # 6. plot bar plots
-    data.plot(kind='box', subplots=True, layout=(3,3), sharex=False, sharey=False, figsize=(10, 10))
-    plt.show()
-
-    # 7. show the scatter matrix
-    scatter_matrix(data, figsize=(15,15))
-    plt.show()
-
+    
 if __name__ == "__main__":
     main()

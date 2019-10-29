@@ -123,9 +123,10 @@ def classify(inputTree,featLabels,testVec):
             featIndex = i
     
     key = testVec[featIndex]
-    valueOfFeat = secondDict.get(key, 0)
-    if isinstance(valueOfFeat, dict): 
+    valueOfFeat = secondDict.get(key, None)
+    if valueOfFeat != None and isinstance(valueOfFeat, dict): 
         classLabel = classify(valueOfFeat, featLabels, testVec)
+    elif valueOfFeat == None:   classLabel = 0
     else: classLabel = valueOfFeat
     return classLabel
 
