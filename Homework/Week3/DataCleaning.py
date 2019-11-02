@@ -164,13 +164,13 @@ def main():
     for i in range(data.shape[0]):
         subdata = data.iloc[i]
         if(subdata['Glucose'] == 0):
-            subdata['Glucose'] = data[data['Glucose'] != 0]['Glucose'].mean()
+            subdata['Glucose'] = data[data['Glucose'] != 0]['Glucose'].median()
             data.iloc[i] = subdata
         if(subdata['BloodPressure'] == 0):
-            subdata['BloodPressure'] = data[data['BloodPressure'] != 0]['BloodPressure'].mean()
+            subdata['BloodPressure'] = data[data['BloodPressure'] != 0]['BloodPressure'].median()
             data.iloc[i] = subdata
         if(subdata['SkinThickness'] == 0):
-            subdata['SkinThickness'] = data[data['SkinThickness'] != 0]['SkinThickness'].mean()
+            subdata['SkinThickness'] = data[data['SkinThickness'] != 0]['SkinThickness'].median()
             data.iloc[i] = subdata
         if(subdata['BMI'] == 0):
             subdata['BMI'] = data[data['BMI'] != 0]['BMI'].mean()
