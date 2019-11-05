@@ -37,7 +37,7 @@ def main():
         #use the built-in describe method of pandas
         description = subdata.describe()
         #compute missing_values and cardinality of the data
-        if feature not in ['Glucose', 'BloodPressure', 'SkinThickness', 'BMI']:
+        if feature not in ['Glucose', 'BloodPressure', 'SkinThickness', 'BMI', 'Insulin']:
             missing_values = subdata.isnull().sum().sum()
         else:
             missing_values = subdata.value_counts()[0]

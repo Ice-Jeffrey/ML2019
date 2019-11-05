@@ -164,13 +164,13 @@ def main():
     for i in range(data.shape[0]):
         subdata = data.iloc[i]
         if(subdata['Glucose'] == 0):
-            subdata['Glucose'] = data[data['Glucose'] != 0]['Glucose'].median()
+            subdata['Glucose'] = data[data['Glucose'] != 0]['Glucose'].mean()
             data.iloc[i] = subdata
         if(subdata['BloodPressure'] == 0):
-            subdata['BloodPressure'] = data[data['BloodPressure'] != 0]['BloodPressure'].median()
+            subdata['BloodPressure'] = data[data['BloodPressure'] != 0]['BloodPressure'].mean()
             data.iloc[i] = subdata
         if(subdata['SkinThickness'] == 0):
-            subdata['SkinThickness'] = data[data['SkinThickness'] != 0]['SkinThickness'].median()
+            subdata['SkinThickness'] = data[data['SkinThickness'] != 0]['SkinThickness'].mean()
             data.iloc[i] = subdata
         if(subdata['BMI'] == 0):
             subdata['BMI'] = data[data['BMI'] != 0]['BMI'].mean()
@@ -180,13 +180,14 @@ def main():
     print(data.drop('Class', axis=1).corr())
     data.drop('SkinThickness', axis=1)
     data.drop('Pregnancies', axis=1)
+    data.drop('Insulin', axis=1)
 
     # 4. create thresholds
     thresholds = create_thresholds(
-        data, ['Glucose', 'BloodPressure', 'Insulin', 'BMI', 'DPF', 'Age'], nstds=2)
+        data, ['Glucose', 'BloodPressure', 'BMI', 'DPF', 'Age'], nstds=2)
 
     # 5. modify the data and transform it into nominal values
-    data = changeData(data, features=['Age', 'Glucose', 'BloodPressure', 'Insulin', 'BMI', 'DPF'], thresholds=thresholds)
+    data = changeData(data, features=['Age', 'Glucose', 'BloodPressure', 'BMI', 'DPF'], thresholds=thresholds)
 
     # 6. split the dataset to be training data and testing data
     train_data, test_data = train_test_split(data, test_size=0.25)
